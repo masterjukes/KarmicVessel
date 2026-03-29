@@ -12,6 +12,7 @@ namespace KarmicVessel.Other
     {
         public static GameObject AssetKarmaChakra;
         public static GameObject AssetKarmaShrink;
+        public static GameObject AssetKarmaPortal;
         public static Shader Assetlitmoss;
         public static ItemData SmallChakraRod;
         public static ItemData LargeChakraRod;
@@ -49,6 +50,12 @@ namespace KarmicVessel.Other
                     dbg.Log("Loaded Shrink Orb");
                     AssetKarmaShrink = q;
                 }, "AssetShrinkOrb");
+                
+                Catalog.LoadAssetAsync<GameObject>("KarmaPortal", q =>
+                {
+                    dbg.Log("Loaded portal");
+                    AssetKarmaPortal = q;
+                }, "AssetPortalKarma");
 
                 //Catalog.LoadAssetAsync<Shader>("Shader.litmoss", q => { Assetlitmoss = q; }, "AssetLitmoss");
             }
