@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+            Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{383DD85C-26C6-43AE-86A1-03FD65CE715C}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>KarmicVessel</RootNamespace>
+        <AssemblyName>KarmicVessel</AssemblyName>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="Newtonsoft.Json">
+          <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="System"/>
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Xml"/>
+        <Reference Include="ThunderRoad">
+          <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
+        </Reference>
+        <Reference Include="ThunderRoad.Manikin">
+          <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.Manikin.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.ResourceManager">
+          <HintPath>E:\Blade and Sorcery1.1\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+          <HintPath>E:\Blade and Sorcery1.1\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+          <HintPath>E:\Blade and Sorcery1.1\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="ItemModules\CustomLoop.cs" />
+        <Compile Include="ItemModules\ItemHomingBehavior.cs" />
+        <Compile Include="Other\AssetLoader.cs" />
+        <Compile Include="Other\ExtensionMethods.cs" />
+        <Compile Include="Other\JointFollow.cs" />
+        <Compile Include="Other\ModOptions.cs" />
+        <Compile Include="Other\SIMPLEDEBUG.cs" />
+        <Compile Include="Other\SpellOrbSwitcher.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="Tier1\ChakraSpike.cs" />
+        <Compile Include="Tier1\KarmaBase.cs" />
+        <Compile Include="Tier1\KarmaLargeRod.cs" />
+        <Compile Include="Tier1\Multi Throw.cs" />
+        <Compile Include="Tier2\Kokugan Pulse.cs" />
+        <Compile Include="Tier2\Shrinkage Field.cs" />
+        <Compile Include="Tier2\Shrinking Grasp.cs" />
+        <Compile Include="Tier2\Sukunahikuna.cs" />
+        <Compile Include="Tier3\Daikokuten.cs" />
+        <Compile Include="Tier3\DaikokutenData.cs" />
+        <Compile Include="Tier3\DkJoint.cs" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

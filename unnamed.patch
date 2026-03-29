@@ -1,0 +1,17 @@
+Index: KarmicVessel/SIMPLEDEBUG.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/KarmicVessel/SIMPLEDEBUG.cs b/KarmicVessel/SIMPLEDEBUG.cs
+--- a/KarmicVessel/SIMPLEDEBUG.cs
++++ b/KarmicVessel/SIMPLEDEBUG.cs
+@@ -5,7 +5,7 @@
+ {
+     public class dbg : MonoBehaviour
+     {
+-        
++        [ModOptionCategory("Dev Settings", 4)]
+         [ModOption("Enable Debug Logs")]
+         public static bool DebugMode = true;
+ 
