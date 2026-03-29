@@ -192,7 +192,6 @@ namespace KarmicVessel.Tier3
             {
                 summoning = false;
             }
-             //MTQ4Nzg0NDY3MDU2OTcxMzcwNA.Ggz7kz.Ck1Nnhcn_EKYAN28NBhP3bEzzqXH6tDhmAn_OY
             
         }
         
