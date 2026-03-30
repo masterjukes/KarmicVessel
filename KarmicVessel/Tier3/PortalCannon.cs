@@ -56,6 +56,8 @@ namespace KarmicVessel.Tier3
                     lastTriggerTime = Time.time;
                 }
             }
+            
+            //bot test
 
             lastPos = target.position;
         }
