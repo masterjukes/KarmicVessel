@@ -63,7 +63,8 @@ namespace KarmicVessel.Tier3
 
         void OnGesture(GestureUtils.Direction dir)
         {
-            Creature creature = Creature.allActive.First();
+            Creature creature = Creature.AimAssist(Player.currentCreature.transform.position, Player.local.head.cam.transform.forward, 50, 90, ignoredEntity: Player.currentCreature ) as Creature;
+            
             Vector3 creaturePortalOffset = Vector3.zero;
             
             
