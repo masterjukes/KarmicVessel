@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using IngameDebugConsole;
 using KarmicVessel.Other;
 using KarmicVessel.Tier1;
 using ThunderRoad;
@@ -16,7 +17,16 @@ namespace KarmicVessel.Tier3
         public float cooldown = 0.4f; 
         private Vector3 lastPos;
         private float lastTriggerTime;
-        
+
+        public override void OnSkillLoaded(SkillData skillData, Creature creature)
+        {
+            base.OnSkillLoaded(skillData, creature);
+            Action<GestureUtils.Direction> OGesture = OnGesture;
+            DebugLogConsole.AddCommand("PortalShoot", "does a portal thing", OGesture, "direction");
+
+        }
+
+
         public override void OnSpellLoad(SpellData spell, SpellCaster caster = null)
         {
             base.OnSpellLoad(spell, caster);
@@ -60,7 +70,11 @@ namespace KarmicVessel.Tier3
 
             lastPos = target.position;
         }
+        
+        
 
+        
+        [ConsoleMethod( "PortalShoot", "does a portal thing", "direction")]
         void OnGesture(GestureUtils.Direction dir)
         {
             Creature creature = Creature.AimAssist(Player.currentCreature.transform.position, Player.local.head.cam.transform.forward, 50, 90, ignoredEntity: Player.currentCreature ) as Creature;
