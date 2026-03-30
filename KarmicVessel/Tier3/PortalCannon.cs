@@ -57,7 +57,6 @@ namespace KarmicVessel.Tier3
                 }
             }
             
-            //bot test
 
             lastPos = target.position;
         }
