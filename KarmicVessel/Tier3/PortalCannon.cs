@@ -15,10 +15,11 @@ namespace KarmicVessel.Tier3
     public class PortalCannon : SpellSkillData
     {
         
-        public float threshold = 0.05f;
-        public float cooldown = 0.4f; 
+        public float cooldown = 1.2f; 
         private Vector3 lastPos;
         private float lastTriggerTime;
+        public float velocityThreshold = 1.5f; 
+        public float angleThreshold = 30f; 
 
         public override void OnSkillLoaded(SkillData skillData, Creature creature)
         {
@@ -44,39 +45,54 @@ namespace KarmicVessel.Tier3
 
             
         }
-
-        private void KarmaSpellOnOnSpellUpdateEvent(SpellCastCharge spell)
-        {
-            var caster = spell.spellCaster;
-            var _spell = spell as KarmaBase;
-            if(_spell.ability != ModOptions.SpellHands.Daikokuten || _spell.DaikokutenItem != null) return;
-            if(_spell.isCasting)
-                DetectGesture(caster.Orb);
-        }
         
-        void DetectGesture(Transform target)
+        private void KarmaSpellOnOnSpellUpdateEvent(SpellCastCharge _spell)
         {
-            Vector3 delta = target.position - lastPos;
+            var spell = _spell as KarmaBase;
+            if(spell.ability != ModOptions.SpellHands.Daikokuten) return;
 
-            if (Time.time - lastTriggerTime > cooldown)
+            if (spell.DaikokutenItem == null && Time.time - lastTriggerTime > cooldown) 
             {
-                GestureUtils.Direction dir =
-                    GestureUtils.GetCameraRelativeDirection(target, lastPos, Player.local.head.cam.transform, threshold);
+                var hand = spell.spellCaster.ragdollHand; 
+                var velocity = hand.Velocity();
+                var speed = velocity.magnitude;
+                
+                
+                var cameraTransform = Player.local.head.cam.transform;
+                GestureUtils.Direction dir = GestureUtils.Direction.None;
 
-                if (dir != GestureUtils.Direction.None)
+
+                var direction = cameraTransform.up * -1;
+                var angle = Vector3.Angle(direction, velocity.normalized);
+                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction) > 0.5f))
+                    dir = GestureUtils.Direction.Down;
+                
+                direction = cameraTransform.right;
+                angle = Vector3.Angle(direction, velocity.normalized);
+                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction) > 0.5f))
+                    dir = GestureUtils.Direction.Right;
+                
+                
+                direction = cameraTransform.right * -1;
+                angle = Vector3.Angle(direction, velocity.normalized);
+                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction) > 0.5f))
+                    dir = GestureUtils.Direction.Left;
+                
+                direction = cameraTransform.forward * -1;
+                angle = Vector3.Angle(direction, velocity.normalized);
+                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction) > 0.5f))
+                    dir = GestureUtils.Direction.Backward;
+
+
+                var allowedDirections = new[] {GestureUtils.Direction.Backward, GestureUtils.Direction.Left, GestureUtils.Direction.Right, GestureUtils.Direction.Down};
+                if (allowedDirections.Contains(dir))
                 {
-                    Debug.Log("Detected gesture: " + dir);
                     OnGesture(dir);
                     lastTriggerTime = Time.time;
                 }
             }
             
-
-            lastPos = target.position;
         }
-        
-        
-
         
         [ConsoleMethod( "PortalShoot", "does a portal thing", "direction")]
         void OnGesture(GestureUtils.Direction dir)
