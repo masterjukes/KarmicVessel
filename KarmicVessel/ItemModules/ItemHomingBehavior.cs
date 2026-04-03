@@ -16,7 +16,7 @@ namespace KarmicVessel.ItemModules
             item = GetComponent<Item>();
             item.mainCollisionHandler.OnCollidingEvent += colliding =>
             {
-                Destroy(item.GetComponent<ItemHomingBehavior>());
+                Destroy(this);
             };
         }
 

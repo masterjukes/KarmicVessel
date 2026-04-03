@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using IngameDebugConsole;
+using KarmicVessel.ItemModules;
 using KarmicVessel.Other;
 using KarmicVessel.Tier1;
 using ThunderRoad;
@@ -80,7 +81,7 @@ namespace KarmicVessel.Tier3
                 
                 direction = cameraTransform.forward * -1;
                 angle = Vector3.Angle(direction, velocity.normalized);
-                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction) > 0.5f))
+                if((speed > velocityThreshold && angle < angleThreshold && Vector3.Dot(hand.PalmDir.normalized, direction * -1) > 0.5f))
                     dir = GestureUtils.Direction.Backward;
 
 
@@ -134,7 +135,7 @@ namespace KarmicVessel.Tier3
             var portalPos = creature.ragdoll.targetPart.transform.position + creaturePortalOffset;
 
             Player.local.StartCoroutine(SpawnPortalCoroutine(portalPos, creature.ragdoll.targetPart.transform, true,
-                1f, true));
+                1f, true, creature));
 
         }
         
@@ -159,7 +160,7 @@ namespace KarmicVessel.Tier3
 
 
 
-        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, bool fade, float fadeAfter, bool afterSpawn)
+        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, bool fade, float fadeAfter, bool afterSpawn, Creature targetCreature)
         {
             var portal = SpawnPortal(pos, target);
             portal.transform.localScale = Vector3.zero;
@@ -183,6 +184,9 @@ namespace KarmicVessel.Tier3
                         Debug.Log("Spawned portal item");
                         _i.transform.position = spawn;
                         _i.transform.LookAt(target);
+                        var comp = _i.GetOrAddComponent<ItemHomingBehavior>();
+                        comp.target = targetCreature;
+                        comp.part = RagdollPart.Type.Torso;
                         _i.Throw();
                         _i.AddForce(_i.transform.forward * 10 * item.mass, ForceMode.Impulse);
                     });
