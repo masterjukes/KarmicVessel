@@ -137,6 +137,10 @@ namespace KarmicVessel.Tier3
             var portal = GameObject.Instantiate(AssetStorage.AssetKarmaPortal);
             portal.transform.position = pos;
             portal.transform.LookAt(target);
+            var lr = portal.GetOrAddComponent<LineRenderer>();
+            lr.SetPosition(0, portal.transform.position);;
+            lr.SetPosition(1, target.position);
+
 
             return portal;
         }
