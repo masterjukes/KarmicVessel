@@ -18,6 +18,7 @@ namespace KarmicVessel.Other
         public static ItemData LargeChakraRod;
         public static  EffectData KokuganChakraSFX;
         public static EffectData KokuganShrinkSFX;
+        public static AudioContainer PortalAudio;
 
         public static void LoadAll()
         {
@@ -55,6 +56,12 @@ namespace KarmicVessel.Other
                 {
                     dbg.Log("Loaded portal");
                     AssetKarmaPortal = q;
+                }, "AssetPortalKarma");
+                
+                Catalog.LoadAssetAsync<AudioContainer>("masterjukes.PortalAudio", q =>
+                {
+                    dbg.Log("Loaded portal");
+                    PortalAudio = q;
                 }, "AssetPortalKarma");
 
                 //Catalog.LoadAssetAsync<Shader>("Shader.litmoss", q => { Assetlitmoss = q; }, "AssetLitmoss");

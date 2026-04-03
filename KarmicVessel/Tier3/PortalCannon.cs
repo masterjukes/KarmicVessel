@@ -16,8 +16,7 @@ namespace KarmicVessel.Tier3
     public class PortalCannon : SpellSkillData
     {
         
-        public float cooldown = 1.2f; 
-        private Vector3 lastPos;
+        public float cooldown = 0.3f; 
         private float lastTriggerTime;
         public float velocityThreshold = 1.5f; 
         public float angleThreshold = 30f; 
@@ -134,14 +133,14 @@ namespace KarmicVessel.Tier3
             
             var portalPos = creature.ragdoll.targetPart.transform.position + creaturePortalOffset;
 
-            Player.local.StartCoroutine(SpawnPortalCoroutine(portalPos, creature.ragdoll.targetPart.transform, true,
-                1f, true, creature));
+            Player.local.StartCoroutine(SpawnPortalAndItem(portalPos, creature.ragdoll.targetPart.transform, creature));
 
         }
         
         private static GameObject SpawnPortal(Vector3 pos, Transform target)
         {
             var portal = GameObject.Instantiate(AssetStorage.AssetKarmaPortal);
+            AssetStorage.PortalAudio.PlayClipAtPoint(pos, 1f, AudioMixerName.Effect);
             portal.transform.position = pos;
             portal.transform.LookAt(target);
             portal.transform.Rotate(0f, -91.7f,-106.97f);
@@ -159,8 +158,31 @@ namespace KarmicVessel.Tier3
         }
 
 
+        public IEnumerator SpawnPortalAndItem(Vector3 pos, Transform target, Creature targetCreature)
+        {
+            yield return SpawnPortalCoroutine(pos, target, 1f);
+            Debug.Log("running afterSpawn");
+            var spawn = pos;
+            ItemData item = null;
+            if (Daikokuten._instance.data.items.Count > 0)
+                item = Daikokuten._instance.data.items.Pop();
+            if (item != null)
+                item.SpawnAsync(_i =>
+                {
+                    Debug.Log("Spawned portal item");
+                    _i.transform.position = spawn;
+                    _i.transform.LookAt(target);
+                    var comp = _i.GetOrAddComponent<ItemHomingBehavior>();
+                    comp.target = targetCreature;
+                    comp.part = RagdollPart.Type.Head;
+                    _i.Throw();
+                    _i.AddForce(_i.transform.forward * 10 * item.mass, ForceMode.Impulse);
+                });
+            else
+                Debug.Log("No portal item");
+        }
 
-        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, bool fade, float fadeAfter, bool afterSpawn, Creature targetCreature)
+        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, float despawnTime)
         {
             var portal = SpawnPortal(pos, target);
             portal.transform.localScale = Vector3.zero;
@@ -171,31 +193,7 @@ namespace KarmicVessel.Tier3
             }
             portal.transform.localScale = Vector3.one;
 
-            if (afterSpawn)
-            {
-                Debug.Log("running afterSpawn");
-                var spawn = portal.transform.position;
-                ItemData item = null;
-                if(Daikokuten._instance.data.items.Count > 0) 
-                    item = Daikokuten._instance.data.items.Pop();
-                if (item != null)
-                    item.SpawnAsync(_i =>
-                    {
-                        Debug.Log("Spawned portal item");
-                        _i.transform.position = spawn;
-                        _i.transform.LookAt(target);
-                        var comp = _i.GetOrAddComponent<ItemHomingBehavior>();
-                        comp.target = targetCreature;
-                        comp.part = RagdollPart.Type.Torso;
-                        _i.Throw();
-                        _i.AddForce(_i.transform.forward * 10 * item.mass, ForceMode.Impulse);
-                    });
-                else
-                    Debug.Log("No portal item");
-            }
-
-            if (fade)
-                yield return DestroyPortalFade(portal, fadeAfter);
+            yield return DestroyPortalFade(portal, despawnTime);
         }
 
         public static IEnumerator DestroyPortalFade(GameObject portal, float seconds)

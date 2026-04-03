@@ -64,6 +64,8 @@ namespace KarmicVessel.Tier3
             if(spell.ability != ModOptions.SpellHands.Daikokuten || !gripping) return;
             if(data.items.Count == 0) return;
             
+            if (spell.DaikokutenItem ==null) return;
+            
             var dkItem = data.items.Pop();
             dkItem.SpawnAsync(item =>
             {
