@@ -51,7 +51,7 @@ namespace KarmicVessel.Other
                     AssetKarmaShrink = q;
                 }, "AssetShrinkOrb");
                 
-                Catalog.LoadAssetAsync<GameObject>("KarmaPortal", q =>
+                Catalog.LoadAssetAsync<GameObject>("masterjukes.KarmaPortal", q =>
                 {
                     dbg.Log("Loaded portal");
                     AssetKarmaPortal = q;
@@ -59,7 +59,7 @@ namespace KarmicVessel.Other
 
                 //Catalog.LoadAssetAsync<Shader>("Shader.litmoss", q => { Assetlitmoss = q; }, "AssetLitmoss");
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 
                 dbg.Log("Failed to load assets: " + e + "");

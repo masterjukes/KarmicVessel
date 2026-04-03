@@ -7,6 +7,8 @@ using KarmicVessel.Tier1;
 using ThunderRoad;
 using ThunderRoad.Skill;
 using UnityEngine;
+using Object = System.Object;
+
 namespace KarmicVessel.Tier3
 
 {
@@ -48,7 +50,8 @@ namespace KarmicVessel.Tier3
             var caster = spell.spellCaster;
             var _spell = spell as KarmaBase;
             if(_spell.ability != ModOptions.SpellHands.Daikokuten || _spell.DaikokutenItem != null) return;
-            DetectGesture(caster.Orb);
+            if(_spell.isCasting)
+                DetectGesture(caster.Orb);
         }
         
         void DetectGesture(Transform target)
@@ -62,6 +65,7 @@ namespace KarmicVessel.Tier3
 
                 if (dir != GestureUtils.Direction.None)
                 {
+                    Debug.Log("Detected gesture: " + dir);
                     OnGesture(dir);
                     lastTriggerTime = Time.time;
                 }
@@ -77,49 +81,53 @@ namespace KarmicVessel.Tier3
         [ConsoleMethod( "PortalShoot", "does a portal thing", "direction")]
         void OnGesture(GestureUtils.Direction dir)
         {
-            Creature creature = Creature.AimAssist(Player.currentCreature.transform.position, Player.local.head.cam.transform.forward, 50, 90, ignoredEntity: Player.currentCreature ) as Creature;
-            
+            var te = Creature.AimAssist(Player.currentCreature.transform.position, Player.local.head.cam.transform.forward, 50, 90, ignoredEntity: Player.currentCreature );
+            if(!(te is Creature creature)) return;
             Vector3 creaturePortalOffset = Vector3.zero;
             
             
             switch (dir)
             {
                 case GestureUtils.Direction.Forward:
-                    creaturePortalOffset = creature.ragdoll.targetPart.transform.forward * -0.5f;
+                    creaturePortalOffset = creature.ragdoll.targetPart.transform.right * 1f;
                     break;
 
                 case GestureUtils.Direction.Backward:
-                    creaturePortalOffset = creature.ragdoll.targetPart.transform.forward * 0.5f;
+                    creaturePortalOffset = creature.ragdoll.targetPart.transform.right * -1f;
                     break;
 
                 case GestureUtils.Direction.Left:
-                    creaturePortalOffset = creature.ragdoll.targetPart.transform.right * -0.5f;
+                    creaturePortalOffset = creature.ragdoll.targetPart.transform.forward * 1f;
                     break;
 
                 case GestureUtils.Direction.Right:
-                    creaturePortalOffset = creature.ragdoll.targetPart.transform.right * 0.5f;
+                    creaturePortalOffset = creature.ragdoll.targetPart.transform.forward * -1f;
                     break;
                 
                 case GestureUtils.Direction.Down:
-                    creaturePortalOffset = creature.ragdoll.targetPart.transform.up * 0.5f;
+                    creaturePortalOffset = creature.ragdoll.targetPart.transform.up * 1f;
                     break;
             }
             
             var portalPos = creature.ragdoll.targetPart.transform.position + creaturePortalOffset;
 
-            Player.local.StartCoroutine(SpawnPortalCoroutine(portalPos, creature.ragdoll.targetPart.transform, () =>
+            Player.local.StartCoroutine(SpawnPortalCoroutine(portalPos, creature.ragdoll.targetPart.transform, true, 1f, () =>
             {
+                Debug.Log("running afterSpawn");
                 var spawn = portalPos;
                 var target = creature.ragdoll.targetPart.transform;
                 var item = Daikokuten._instance.data.items.Pop();
                 if(item != null)
                     item.SpawnAsync(_i =>
                     {
+                        Debug.Log("Spawned portal item");
                         _i.transform.position = spawn;
                         _i.transform.LookAt(target);
                         _i.Throw();
                         _i.AddForce(_i.transform.forward * 10 * item.mass, ForceMode.Impulse);
                     });
+                else
+                    Debug.Log("No portal item");
             }));
             
         }
@@ -135,7 +143,7 @@ namespace KarmicVessel.Tier3
 
 
 
-        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, Action afterSpawn = null)
+        public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, bool fade, float fadeAfter, Action afterSpawn = null)
         {
             var portal = SpawnPortal(pos, target);
             portal.transform.localScale = Vector3.zero;
@@ -148,6 +156,24 @@ namespace KarmicVessel.Tier3
             
             if (afterSpawn != null)
                 yield return afterSpawn;
+            
+            if (fade)
+                yield return DestroyPortalFade(portal, fadeAfter);
+        }
+
+        public static IEnumerator DestroyPortalFade(GameObject portal, float seconds)
+        {
+            yield return Yielders.ForSeconds(seconds);
+            portal.transform.localScale = Vector3.one;
+            while (portal.transform.localScale.x > 0)
+            {
+                portal.transform.localScale -= new Vector3(0.05f, 0.05f, 0.05f);
+                yield return null;
+            }
+
+            portal.transform.localScale = Vector3.zero;
+
+            GameObject.Destroy(portal);
         }
     }
 }

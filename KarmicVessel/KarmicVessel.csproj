@@ -50,6 +50,9 @@
         <Reference Include="ThunderRoad.Manikin">
           <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\ThunderRoad.Manikin.dll</HintPath>
         </Reference>
+        <Reference Include="Unity.ResourceManager">
+          <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.CoreModule">
           <HintPath>E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
