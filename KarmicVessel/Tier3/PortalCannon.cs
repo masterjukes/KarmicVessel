@@ -16,8 +16,10 @@ namespace KarmicVessel.Tier3
     public class PortalCannon : SpellSkillData
     {
         
-        public float cooldown = 0.3f; 
-        private float lastTriggerTime;
+        public float cooldown = 1f; 
+        private float leftLastTriggerTime;
+        private float rightLastTriggerTime;
+
         public float velocityThreshold = 1.5f; 
         public float angleThreshold = 30f; 
 
@@ -51,6 +53,7 @@ namespace KarmicVessel.Tier3
             var spell = _spell as KarmaBase;
             if(spell.ability != ModOptions.SpellHands.Daikokuten) return;
 
+            ref var lastTriggerTime = ref _spell.spellCaster.side == Side.Right ? ref rightLastTriggerTime : ref  leftLastTriggerTime;
             if (spell.DaikokutenItem == null && Time.time - lastTriggerTime > cooldown) 
             {
                 var hand = spell.spellCaster.ragdollHand; 
@@ -160,14 +163,21 @@ namespace KarmicVessel.Tier3
 
         public IEnumerator SpawnPortalAndItem(Vector3 pos, Transform target, Creature targetCreature)
         {
-            yield return SpawnPortalCoroutine(pos, target, 1f);
-            Debug.Log("running afterSpawn");
+            var portal = SpawnPortal(pos, target);
+            portal.transform.localScale = Vector3.zero;
+            while (portal.transform.localScale.x < 1)
+            {
+                portal.transform.localScale += new Vector3(0.05f, 0.05f, 0.05f);
+                yield return null;
+            }
+            portal.transform.localScale = Vector3.one;
+            
             var spawn = pos;
-            ItemData item = null;
+            string item = null;
             if (Daikokuten._instance.data.items.Count > 0)
                 item = Daikokuten._instance.data.items.Pop();
             if (item != null)
-                item.SpawnAsync(_i =>
+                Catalog.GetData<ItemData>(item).SpawnAsync(_i =>
                 {
                     Debug.Log("Spawned portal item");
                     _i.transform.position = spawn;
@@ -176,10 +186,13 @@ namespace KarmicVessel.Tier3
                     comp.target = targetCreature;
                     comp.part = RagdollPart.Type.Head;
                     _i.Throw();
-                    _i.AddForce(_i.transform.forward * 10 * item.mass, ForceMode.Impulse);
+                    _i.AddForce(_i.transform.forward * 10 * _i.data.mass, ForceMode.Impulse);
                 });
             else
                 Debug.Log("No portal item");
+            
+            yield return DestroyPortalFade(portal, 1f);
+
         }
 
         public static IEnumerator SpawnPortalCoroutine(Vector3 pos, Transform target, float despawnTime)

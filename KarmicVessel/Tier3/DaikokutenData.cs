@@ -8,10 +8,13 @@ namespace KarmicVessel.Tier3
 {
     public class DaikokutenData
     {
-        public Stack<ItemData> items;
+        public Stack<string> items;
         public List<CreatureData> creatures;
 
+
         
+
+
 
         public void Load()
         {
@@ -26,7 +29,7 @@ namespace KarmicVessel.Tier3
                 return;
             }
             Debug.Log("No save file found!");
-            items = new Stack<ItemData>();
+            items = new Stack<string>();
             creatures = new List<CreatureData>();
         }
         

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using KarmicVessel.ItemModules;
@@ -16,8 +17,10 @@ namespace KarmicVessel.Tier3
     {
         public static Daikokuten _instance;
         public float velocityThreshold = 1.5f; 
-        public float angleThreshold = 30f; 
-        
+        public float angleThreshold = 30f;
+        private bool justStopped = false;
+
+        private string prevDaikokutenItem;
 
         
         bool summoning = false;
@@ -54,26 +57,10 @@ namespace KarmicVessel.Tier3
             karmaSpell.OnSpellUpdateEvent += KarmaSpellOnOnSpellUpdateEvent;
             karmaSpell.OnSpellStopEvent += KarmaSpellOnOnSpellStopEvent;
             karmaSpell.OnSpellThrowEvent += KarmaSpellOnOnSpellThrowEvent;
-            karmaSpell.spellCaster.ragdollHand.playerHand.OnFistEvent += PlayerHandOnOnFistEvent;
             
         }
 
-        private void PlayerHandOnOnFistEvent(PlayerHand hand, bool gripping)
-        {
-            var spell = Player.currentCreature.mana.GetCaster(hand.side).spellInstance as KarmaBase;
-            if(spell.ability != ModOptions.SpellHands.Daikokuten || !gripping) return;
-            if(data.items.Count == 0) return;
-            
-            if (spell.DaikokutenItem ==null) return;
-            
-            var dkItem = data.items.Pop();
-            dkItem.SpawnAsync(item =>
-            {
-                var handle = item.GetMainHandle(hand.side);
-                hand.ragdollHand.Grab(handle, true);;
-                dbg.Log("Grabbed DaikokutenItem");
-            });
-        }
+
 
         private void KarmaSpellOnOnSpellThrowEvent(SpellCastCharge _spell, Vector3 velocity)
         {
@@ -106,21 +93,48 @@ namespace KarmicVessel.Tier3
             if (spell.DaikokutenItem != null)
             {
                 GameObject.Destroy(spell.DaikokutenItem.GetComponent<SmoothFollow>());
-                data.items.Push(spell.DaikokutenItem.data);
+                data.items.Push(spell.DaikokutenItem.data.id);
                 spell.DaikokutenItem.physicBody.isKinematic = false;
                 spell.DaikokutenItem.Despawn(0.4f);
                 spell.DaikokutenItem = null;
+                spell.DaikokutenItem.GetMainHandle(_spell.spellCaster.ragdollHand.side).Grabbed += OnGrabbed;
+                
+                
                 dbg.Log("DaikokutenItem Stopped and despawned");
+
             }
 
 
         }
+
+        private void OnGrabbed(RagdollHand ragdollHand, Handle handle, EventTime eventTime)
+        {
+            if(eventTime == EventTime.OnEnd)
+                return;
+            
+            handle.Release();
+            handle.ReleaseAllTkHandlers();
+            var prevItemId = handle.item.data.id;
+            handle.item.Despawn();
+            
+            var dkItem = prevItemId;
+            Catalog.GetData<ItemData>(dkItem).SpawnAsync(item =>
+            {
+                var _handle = item.GetMainHandle(ragdollHand.side);
+                ragdollHand.Grab(_handle, true);
+                dbg.Log("Grabbed DaikokutenItem");
+            });
+        }
+        
         
         private void KarmaSpellOnOnSpellUpdateEvent(SpellCastCharge _spell)
         {
             var spell = _spell as KarmaBase;
             if(spell.ability != ModOptions.SpellHands.Daikokuten) return;
 
+            if(_spell.spellCaster.ragdollHand.playerHand.controlHand.gripPressed)
+                Debug.Log("Gripping");
+            
             if (spell.DaikokutenItem == null)
             {
                 var hand = spell.spellCaster.ragdollHand; 
@@ -142,7 +156,7 @@ namespace KarmicVessel.Tier3
 
             if (handle.item != null)
             {
-                data.items.Push(handle.item.data);
+                data.items.Push(handle.item.data.id);
                 handle.item.Despawn();
             }
         }
@@ -152,7 +166,7 @@ namespace KarmicVessel.Tier3
         {
             Debug.Log("Summoning DaikokutenItem");
             var spellCaster = spell.spellCaster;
-            ItemData dkItem = null;
+            string dkItem = null;
 
             if (data.items.Count > 0)
             {
@@ -165,7 +179,7 @@ namespace KarmicVessel.Tier3
 
 
             if(dkItem != null)
-                dkItem.SpawnAsync(item =>
+                Catalog.GetData<ItemData>(dkItem).SpawnAsync(item =>
                 {
                     try
                     {
@@ -174,11 +188,11 @@ namespace KarmicVessel.Tier3
                         item.ScaleToGlobalSize(0.15f);
                         item.transform.position = spellCaster.Orb.transform.position;
 
-                        item.GetOrAddComponent<DkJoint>().Init(item, spellCaster.Orb);
+                        item.GetOrAddComponent<DkJoint>().Init(item, spellCaster.Orb, spellCaster);
 
                         var homing = item.GetOrAddComponent<ItemHomingBehavior>();
                         homing.RandomTarget = true;
-
+                        
                         item.IgnoreRagdollCollision(spellCaster.ragdollHand.ragdoll);
                         item.transform.rotation = Quaternion.LookRotation(spellCaster.ragdollHand.PalmDir);
                         summoning = false;
@@ -197,10 +211,7 @@ namespace KarmicVessel.Tier3
             
         }
         
-        
-        
 
-        
 
         public override void OnSpellUnload(SpellData spell, SpellCaster caster = null)
         {
@@ -212,7 +223,6 @@ namespace KarmicVessel.Tier3
             karmaSpell.OnSpellUpdateEvent -= KarmaSpellOnOnSpellUpdateEvent;
             karmaSpell.OnSpellStopEvent -= KarmaSpellOnOnSpellStopEvent;
             karmaSpell.OnSpellThrowEvent -= KarmaSpellOnOnSpellThrowEvent;
-            karmaSpell.spellCaster.ragdollHand.playerHand.OnFistEvent -= PlayerHandOnOnFistEvent;
         }
     }
 }

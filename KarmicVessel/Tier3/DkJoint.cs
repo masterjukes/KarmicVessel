@@ -7,95 +7,50 @@ namespace KarmicVessel.Tier3
 {
     public class DkJoint : MonoBehaviour
     {
-        private ConfigurableJoint joint;
-        private Rigidbody anchor;
-        
+        private Item item;
         public Transform target;
+        SpellCaster caster;
 
-        public void Init(Item item, Transform target)
+        [Header("Settings")]
+        public float strength = 10f;
+        public float damping = 2f;
+        public float maxForce = 50f;
+        public float rotationSpeed = 10f;
+
+        public void Init(Item item, Transform target, SpellCaster caster)
         {
             this.target = target;
-            SetupAnchor();
-            RefreshJoint(item);
-        }
-        
-        private void OnDestroy()
-        {
-            if (anchor != null)
-                Object.Destroy(anchor);
-            if(joint != null)
-                Destroy(joint);
-        }
-        
-        public void RefreshJoint(Item item)
-        {
-            if (anchor != null)
-            {
-                if (joint == null)
-                    joint = item.gameObject.AddComponent<ConfigurableJoint>();
-                
-
-                JointDrive drive = new JointDrive
-                {
-                    positionSpring = 100f, 
-                    positionDamper = 300f,  
-                    maximumForce = float.MaxValue
-                };
-
-                joint.xDrive = drive;
-                joint.yDrive = drive;
-                joint.zDrive = drive;
-
-                joint.slerpDrive = new JointDrive
-                {
-                    positionSpring = 100f,
-                    positionDamper = 300f,
-                    maximumForce = float.MaxValue
-                };
-
-                joint.massScale = 1f;
-                joint.connectedMassScale = 1000f;
-
-                joint.rotationDriveMode = RotationDriveMode.Slerp;
-                
-                joint.xMotion = ConfigurableJointMotion.Free;
-                joint.yMotion = ConfigurableJointMotion.Free;
-                joint.zMotion = ConfigurableJointMotion.Free;
-
-                joint.angularXMotion = ConfigurableJointMotion.Free;
-                joint.angularYMotion = ConfigurableJointMotion.Free;
-                joint.angularZMotion = ConfigurableJointMotion.Free;
-
-                
-                joint.autoConfigureConnectedAnchor = false;
-                joint.anchor = item.transform.InverseTransformPoint(target.position);
-                item.physicBody.rigidBody.inertiaTensor = new Vector3(1, 1, 1);
-                item.physicBody.rigidBody.inertiaTensorRotation = Quaternion.identity;
-                joint.connectedBody = anchor;
-            }
-            else
-            {
-                if (!(joint != null))
-                    return;
-                Object.Destroy(joint);
-                joint = null;
-            }
+            this.item = item;
+            this.caster = caster;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
-            if (anchor != null)
-                anchor.MovePosition(target.position);
+            if (!item || !target) return;
 
-        }
+            Vector3 toTarget = target.position - transform.position;
+            float distance = toTarget.magnitude;
 
-        public void SetupAnchor()
-        {
-            anchor = new GameObject("DKAnchor").AddComponent<Rigidbody>();
-            anchor.transform.position = target.position;
-            anchor.isKinematic = true;
-            anchor.useGravity = false;
-            anchor.interpolation = RigidbodyInterpolation.Interpolate;
+            if (distance < 0.001f) return;
+
+            Vector3 dir = toTarget / distance;
+
+            // Spring force with damping
+            Vector3 velocity = item.physicBody.velocity;
+            Vector3 force = (toTarget * strength) - (velocity * damping);
+
+            // Clamp force to avoid instability
+            force = Vector3.ClampMagnitude(force, maxForce);
+
+            item.AddForce(force, ForceMode.Acceleration);
+
+            // Smooth rotation
+            Quaternion targetRot = Quaternion.LookRotation(caster.ragdollHand.PalmDir);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRot,
+                rotationSpeed * Time.fixedDeltaTime
+            );
         }
     }
 }
