@@ -1,4 +1,5 @@
 ﻿using System;
+using KarmicVessel.Other;
 using ThunderRoad;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -11,16 +12,28 @@ namespace KarmicVessel.Tier3
         public Transform target;
         SpellCaster caster;
 
-        public float strength = 10f;
-        public float damping = 2f;
+        public float strength = 40f;
+        public float damping = 10f;
         public float maxForce = 50f;
-        public float rotationSpeed = 10f;
+        public float rotationSpeed = 20f;
 
-        public void Init(Item item, Transform target, SpellCaster caster)
+        private LineRenderer lr;
+
+        public void Init(Item item, Transform target, SpellCaster caster) 
         {
             this.target = target;
             this.item = item;
             this.caster = caster;
+            lr = dbg.DrawLine(transform.position, target.position, 0.01f, Color.red, despawnTime: 20f);
+            item.physicBody.rigidBody.useGravity = false;
+
+        }
+
+        private void OnDestroy()
+        {
+            Destroy(lr);
+            item.physicBody.rigidBody.useGravity = true;
+
         }
 
         private void FixedUpdate()
@@ -47,6 +60,11 @@ namespace KarmicVessel.Tier3
                 targetRot,
                 rotationSpeed * Time.fixedDeltaTime
             );
+            if (lr != null)
+            {
+                lr.SetPosition(0, transform.position);
+                lr.SetPosition(1, target.position);
+            }
         }
     }
 }

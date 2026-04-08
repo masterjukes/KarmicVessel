@@ -136,7 +136,7 @@ namespace KarmicVessel.Tier3
             
             var portalPos = creature.ragdoll.targetPart.transform.position + creaturePortalOffset;
 
-            Player.local.StartCoroutine(SpawnPortalAndItem(portalPos, creature.ragdoll.targetPart.transform, creature));
+            SpawnPortalAndItem(portalPos, creature.ragdoll.targetPart.transform, creature);
 
         }
         
@@ -161,16 +161,9 @@ namespace KarmicVessel.Tier3
         }
 
 
-        public IEnumerator SpawnPortalAndItem(Vector3 pos, Transform target, Creature targetCreature)
+        public void SpawnPortalAndItem(Vector3 pos, Transform target, Creature targetCreature)
         {
-            var portal = SpawnPortal(pos, target);
-            portal.transform.localScale = Vector3.zero;
-            while (portal.transform.localScale.x < 1)
-            {
-                portal.transform.localScale += new Vector3(0.05f, 0.05f, 0.05f);
-                yield return null;
-            }
-            portal.transform.localScale = Vector3.one;
+            GameManager.local.StartCoroutine(SpawnPortalCoroutine(pos, target, 1f));
             
             var spawn = pos;
             string item = null;
@@ -182,16 +175,15 @@ namespace KarmicVessel.Tier3
                     Debug.Log("Spawned portal item");
                     _i.transform.position = spawn;
                     _i.transform.LookAt(target);
-                    var comp = _i.GetOrAddComponent<ItemHomingBehavior>();
-                    comp.target = targetCreature;
-                    comp.part = RagdollPart.Type.Head;
+                    //var comp = _i.GetOrAddComponent<ItemHomingBehavior>();
+                    //comp.target = targetCreature;
+                    //comp.part = RagdollPart.Type.Head;
                     _i.Throw();
-                    _i.AddForce(_i.transform.forward * 10 * _i.data.mass, ForceMode.Impulse);
+                    _i.AddForce(_i.transform.forward * 7, ForceMode.VelocityChange);
                 });
             else
                 Debug.Log("No portal item");
             
-            yield return DestroyPortalFade(portal, 1f);
 
         }
 

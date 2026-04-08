@@ -57,9 +57,30 @@ namespace KarmicVessel.Tier3
             karmaSpell.OnSpellUpdateEvent += KarmaSpellOnOnSpellUpdateEvent;
             karmaSpell.OnSpellStopEvent += KarmaSpellOnOnSpellStopEvent;
             karmaSpell.OnSpellThrowEvent += KarmaSpellOnOnSpellThrowEvent;
+            caster.ragdollHand.playerHand.OnFistEvent += PlayerHandOnOnFistEvent;
             
         }
 
+        private void PlayerHandOnOnFistEvent(PlayerHand hand, bool gripping)
+        {
+            if(hand.ragdollHand.caster.spellInstance is not KarmaBase spell)
+                return;
+            
+            if(spell.ability != ModOptions.SpellHands.Daikokuten) return;
+            
+            if(!gripping)
+                return;
+            
+            var dkItem = data.items.Pop();
+            Catalog.GetData<ItemData>(dkItem).SpawnAsync(item =>
+            {
+                var _handle = item.GetMainHandle(spell.spellCaster.ragdollHand.side);
+                spell.spellCaster.ragdollHand.Grab(_handle, true);
+                dbg.Log("Grabbed DaikokutenItem");
+            });
+            
+            
+        }
 
 
         private void KarmaSpellOnOnSpellThrowEvent(SpellCastCharge _spell, Vector3 velocity)
@@ -92,12 +113,9 @@ namespace KarmicVessel.Tier3
             var spell = _spell as KarmaBase;
             if (spell.DaikokutenItem != null)
             {
-                GameObject.Destroy(spell.DaikokutenItem.GetComponent<SmoothFollow>());
                 data.items.Push(spell.DaikokutenItem.data.id);
-                spell.DaikokutenItem.physicBody.isKinematic = false;
                 spell.DaikokutenItem.Despawn(0.4f);
                 spell.DaikokutenItem = null;
-                spell.DaikokutenItem.GetMainHandle(_spell.spellCaster.ragdollHand.side).Grabbed += OnGrabbed;
                 
                 
                 dbg.Log("DaikokutenItem Stopped and despawned");
@@ -107,33 +125,14 @@ namespace KarmicVessel.Tier3
 
         }
 
-        private void OnGrabbed(RagdollHand ragdollHand, Handle handle, EventTime eventTime)
-        {
-            if(eventTime == EventTime.OnEnd)
-                return;
-            
-            handle.Release();
-            handle.ReleaseAllTkHandlers();
-            var prevItemId = handle.item.data.id;
-            handle.item.Despawn();
-            
-            var dkItem = prevItemId;
-            Catalog.GetData<ItemData>(dkItem).SpawnAsync(item =>
-            {
-                var _handle = item.GetMainHandle(ragdollHand.side);
-                ragdollHand.Grab(_handle, true);
-                dbg.Log("Grabbed DaikokutenItem");
-            });
-        }
+
         
         
         private void KarmaSpellOnOnSpellUpdateEvent(SpellCastCharge _spell)
         {
             var spell = _spell as KarmaBase;
             if(spell.ability != ModOptions.SpellHands.Daikokuten) return;
-
-            if(_spell.spellCaster.ragdollHand.playerHand.controlHand.gripPressed)
-                Debug.Log("Gripping");
+            
             
             if (spell.DaikokutenItem == null)
             {
@@ -146,6 +145,7 @@ namespace KarmicVessel.Tier3
                 
                 if (canGesture && !summoning) SummonItem(spell);
             }
+
             
         }
 
@@ -184,11 +184,10 @@ namespace KarmicVessel.Tier3
                     try
                     {
                         spell.DaikokutenItem = item;
-                        item.IgnoreRagdollCollision(Player.currentCreature.ragdoll);
                         item.ScaleToGlobalSize(0.15f);
                         item.transform.position = spellCaster.Orb.transform.position;
 
-                        item.GetOrAddComponent<DkJoint>().Init(item, spellCaster.Orb, spellCaster);
+                        item.GetOrAddComponent<DkJoint>().Init(item, spellCaster.Orb.transform, spellCaster);
 
                         var homing = item.GetOrAddComponent<ItemHomingBehavior>();
                         homing.RandomTarget = true;
@@ -219,10 +218,13 @@ namespace KarmicVessel.Tier3
             if (!(spell is  KarmaBase karmaSpell))
                 return;
             
+            caster.ragdollHand.playerHand.OnFistEvent -= PlayerHandOnOnFistEvent;
             caster.telekinesis.OnGrabEvent -= TelekinesisOnOnGrabEvent;
             karmaSpell.OnSpellUpdateEvent -= KarmaSpellOnOnSpellUpdateEvent;
             karmaSpell.OnSpellStopEvent -= KarmaSpellOnOnSpellStopEvent;
             karmaSpell.OnSpellThrowEvent -= KarmaSpellOnOnSpellThrowEvent;
         }
     }
+    
+    
 }

@@ -13,10 +13,10 @@ namespace KarmicVessel.Other
         }
 
 
-        public static void DrawLine(Vector3 org, Vector3 end, float width, Color color, string name = "Line")
+        public static LineRenderer DrawLine(Vector3 org, Vector3 end, float width, Color color, string name = "Line", float despawnTime = 10f)
         {
             if (!ModOptions.ShowDebugRays) 
-                return;
+                return null;
             
             var lineObj = new GameObject(name);
             var newLine = lineObj.AddComponent<LineRenderer>();
@@ -32,7 +32,8 @@ namespace KarmicVessel.Other
             newLine.positionCount = 2;
             newLine.SetPosition(0, org);
             newLine.SetPosition(1, end);
-            Destroy(lineObj, 10f);
+            Destroy(lineObj, despawnTime);
+            return newLine;
         }
         
     }
