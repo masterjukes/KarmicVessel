@@ -11,7 +11,6 @@ namespace KarmicVessel.Tier3
         public Transform target;
         SpellCaster caster;
 
-        [Header("Settings")]
         public float strength = 10f;
         public float damping = 2f;
         public float maxForce = 50f;
@@ -35,16 +34,13 @@ namespace KarmicVessel.Tier3
 
             Vector3 dir = toTarget / distance;
 
-            // Spring force with damping
             Vector3 velocity = item.physicBody.velocity;
             Vector3 force = (toTarget * strength) - (velocity * damping);
 
-            // Clamp force to avoid instability
             force = Vector3.ClampMagnitude(force, maxForce);
 
             item.AddForce(force, ForceMode.Acceleration);
 
-            // Smooth rotation
             Quaternion targetRot = Quaternion.LookRotation(caster.ragdollHand.PalmDir);
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
