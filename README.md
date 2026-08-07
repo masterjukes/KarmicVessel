@@ -1,1 +1,1 @@
-Karmic Vessel mod source code for B&S.
+Karmic Vessel mod source code for B&S
